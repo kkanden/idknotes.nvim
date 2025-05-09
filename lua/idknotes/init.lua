@@ -5,7 +5,7 @@ local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
 local global_note_path = vim.fs.joinpath(folder_path, "global.md")
 local data_path = vim.fs.joinpath(folder_path, "idknotes.json")
 
-M.data = utils.read_data()
+M.data = utils.readable(data_path) and utils.read_data() or nil
 
 local state = {
     floating = {
@@ -145,10 +145,8 @@ function M.setup(opts)
     -- setup directory and data json file if they don't exist yet
     if vim.fn.isdirectory(folder_path) == 0 then vim.fn.mkdir(folder_path) end
     if not utils.readable(data_path) then
-        vim.fn.writefile(
-            { vim.json.encode({ [global_note_path] = "global.md" }) },
-            data_path
-        )
+        vim.fn.writefile({ vim.json.encode({ GLOBAL = "GLOBAL" }) }, data_path)
+        M.data = utils.read_data()
     end
 
     vim.api.nvim_create_user_command("IDKnotes", M.toggle_notes, {})
