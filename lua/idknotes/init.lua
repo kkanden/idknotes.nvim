@@ -64,6 +64,11 @@ local function add_project_note(name, project_path)
 
     M.data = vim.tbl_extend("keep", M.data, { [project_path] = name })
     utils.write_data(M.data)
+
+    vim.notify(
+        ("Successfully created a project note '%s'"):format(name),
+        vim.log.levels.INFO
+    )
 end
 
 local function create_project_name(project_path)
@@ -137,7 +142,7 @@ end
 function M.setup(opts)
     opts = opts or {}
 
-    -- setup directory and data json file if they don't exist
+    -- setup directory and data json file if they don't exist yet
     if vim.fn.isdirectory(folder_path) == 0 then vim.fn.mkdir(folder_path) end
     if not utils.readable(data_path) then
         vim.fn.writefile(
