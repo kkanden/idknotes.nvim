@@ -12,7 +12,8 @@ If you try to open a project-based note in a project that does not yet have a
 note, you will be prompted to enter the name of the project you want to
 associate with the note.
 
-> [!WARNING] Project-based notes currently work only in git repositories.
+> [!WARNING]  
+> Project-based notes currently work only in git repositories.
 
 ### Example configuration
 
