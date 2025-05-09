@@ -66,7 +66,7 @@ local function add_project_note(name, project_path)
     utils.write_data(M.data)
 
     vim.notify(
-        ("Successfully created a project note '%s'"):format(name),
+        ([[Successfully created a project note "%s".]]):format(name),
         vim.log.levels.INFO
     )
 end
@@ -110,7 +110,7 @@ function M.toggle_notes(global)
 
     if not project_path and not global then
         vim.notify(
-            "Not in a git repository - can't open or create a project note",
+            "Not in a git repository - can't open or create a project note.",
             vim.log.levels.WARN
         )
         return
