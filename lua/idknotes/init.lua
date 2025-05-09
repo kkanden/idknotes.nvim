@@ -15,8 +15,8 @@ local state = {
 }
 local function open_floating_window(opts)
     opts = opts or {}
-    local width = math.ceil(vim.o.columns * 0.5)
-    local height = math.ceil(vim.o.lines * 0.3)
+    local width = math.ceil(vim.o.columns * 0.4)
+    local height = math.ceil(vim.o.lines * 0.5)
 
     -- center
     local col = math.floor((vim.o.columns - width) / 2)
