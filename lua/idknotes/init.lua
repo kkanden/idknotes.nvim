@@ -173,7 +173,7 @@ function M.toggle_notes(global)
         return
     end
 
-    global = global == nil and true
+    global = global == nil and true or global
 
     if not cache.project_path and not global then
         vim.notify(
@@ -219,12 +219,18 @@ function M.setup(opts)
         cache.data = utils.read_data()
     end
 
-    vim.api.nvim_create_user_command("IDKnotes", M.toggle_notes, {})
+    vim.api.nvim_create_user_command("IDKnotes", function(args)
+        local global = true
+        if args.bang then global = false end
+        M.toggle_notes(global)
+    end, { bang = true })
+
     vim.api.nvim_create_user_command(
         "IDKnotesChange",
         function() change_project_name(cache.project_path) end,
         {}
     )
+
     vim.api.nvim_create_user_command(
         "IDKnotesManage",
         function() manage_notes(cache.project_path) end,
