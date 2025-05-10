@@ -21,4 +21,8 @@ function M.resolve_project_path()
     return vim.fs.root(working_dir, ".git") -- per-project notes will work on git repositories
 end
 
+function M.get_project_name(data, project_path)
+    return data and data[project_path] or nil
+end
+
 return M

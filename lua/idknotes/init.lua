@@ -1,11 +1,16 @@
 local M = {}
+local cache = {}
+
 local utils = require("idknotes.utils")
 
 local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
 local global_note_path = vim.fs.joinpath(folder_path, "global.md")
 local data_path = vim.fs.joinpath(folder_path, "idknotes.json")
 
-M.data = utils.readable(data_path) and utils.read_data() or nil
+-- set up cache
+cache.data = utils.readable(data_path) and utils.read_data() or nil
+cache.project_path = utils.resolve_project_path()
+cache.project_name = utils.get_project_name(cache.data, cache.project_path)
 
 local state = {
     floating = {
@@ -53,17 +58,11 @@ local function create_note(global, name)
     vim.fn.writefile({ "" }, path)
 end
 
-local function get_project_name()
-    local data = utils.read_data()
-    local project_path = utils.resolve_project_path()
-    return data[project_path]
-end
-
 local function add_project_note(name, project_path)
     create_note(false, name)
 
-    M.data = vim.tbl_extend("keep", M.data, { [project_path] = name })
-    utils.write_data(M.data)
+    cache.data = vim.tbl_extend("keep", cache.data, { [project_path] = name })
+    utils.write_data(cache.data)
 
     vim.notify(
         ([[Successfully created a project note "%s".]]):format(name),
@@ -83,12 +82,14 @@ local function create_project_name(project_path)
         end
 
         -- check if project name is already used
-        if vim.tbl_contains(M.data, input) then
+        if vim.tbl_contains(cache.data, input) then
             vim.notify("Project name already used.", vim.log.levels.ERROR)
             return
         end
 
-        add_project_note(input, project_path)
+        cache.project_name = input
+
+        add_project_note(cache.project_name, project_path)
     end)
 end
 
@@ -101,14 +102,7 @@ function M.toggle_notes(global)
 
     global = global == nil and true
 
-    local project_name
-    local project_path
-    if not global then
-        project_name = get_project_name()
-        project_path = utils.resolve_project_path()
-    end
-
-    if not project_path and not global then
+    if not cache.project_path and not global then
         vim.notify(
             "Not in a git repository - can't open or create a project note.",
             vim.log.levels.WARN
@@ -116,25 +110,25 @@ function M.toggle_notes(global)
         return
     end
 
-    if not project_name and not global then
+    if not cache.project_name and not global then
         vim.ui.input(
             { prompt = "No note found for current project. Create? [y/n]" },
             function(input)
                 if not input or not input:match("y") then return end
-                create_project_name(project_path)
+                create_project_name(cache.project_path)
             end
         )
         return
     end
 
     local path = global and global_note_path
-        or vim.fs.joinpath(folder_path, get_project_name() .. ".md")
+        or vim.fs.joinpath(folder_path, cache.project_name .. ".md")
 
     -- open window
     state.floating = open_floating_window({
         buf = state.floating.buf,
         title = global and " global notes "
-            or string.format(" %s project notes ", project_name),
+            or string.format(" %s project notes ", cache.project_name),
     })
     vim.cmd("edit " .. path)
 end
@@ -146,7 +140,7 @@ function M.setup(opts)
     if vim.fn.isdirectory(folder_path) == 0 then vim.fn.mkdir(folder_path) end
     if not utils.readable(data_path) then
         vim.fn.writefile({ vim.json.encode({ GLOBAL = "GLOBAL" }) }, data_path)
-        M.data = utils.read_data()
+        cache.data = utils.read_data()
     end
 
     vim.api.nvim_create_user_command("IDKnotes", M.toggle_notes, {})
