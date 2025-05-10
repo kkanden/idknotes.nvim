@@ -25,4 +25,12 @@ function M.get_project_name(data, project_path)
     return data and data[project_path] or nil
 end
 
+function M.project_path_from_name(project_name, data)
+    local project_path
+    for k, v in pairs(data) do
+        if v == project_name then project_path = k end
+    end
+    return project_path
+end
+
 return M
