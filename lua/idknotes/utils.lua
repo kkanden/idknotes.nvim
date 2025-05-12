@@ -17,7 +17,7 @@ function M.write_data(data)
 end
 
 function M.resolve_project_path()
-    local working_dir = vim.cmd("pwd")
+    local working_dir = vim.fn.getcwd()
     return vim.fs.root(working_dir, ".git") -- per-project notes will work on git repositories
 end
 
