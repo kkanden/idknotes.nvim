@@ -203,6 +203,14 @@ function M.toggle_notes(global)
         title = global and " global notes "
             or string.format(" %s project notes ", cache.project_name),
     })
+
+    vim.keymap.set(
+        "n",
+        "q",
+        function() vim.cmd("wq") end,
+        { buffer = state.floating.buf, silent = true, noremap = true }
+    )
+
     vim.cmd("edit " .. path)
 end
 
