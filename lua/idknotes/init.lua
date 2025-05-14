@@ -1,6 +1,7 @@
 local M = {}
 local cache = {}
 
+local config = require("idknotes.config")
 local utils = require("idknotes.utils")
 
 local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
@@ -19,14 +20,10 @@ local state = {
         win = -1,
     },
 }
+
+---@param opts idknotes.OpenWinOpts
 local function open_floating_window(opts)
     opts = opts or {}
-    local width = math.ceil(vim.o.columns * 0.4)
-    local height = math.ceil(vim.o.lines * 0.5)
-
-    -- center
-    local col = math.floor((vim.o.columns - width) / 2)
-    local row = math.floor((vim.o.lines - height) / 2)
 
     local buf
     if vim.api.nvim_buf_is_valid(opts.buf) then
@@ -35,17 +32,7 @@ local function open_floating_window(opts)
         buf = vim.api.nvim_create_buf(false, false)
     end
 
-    local win_config = {
-        relative = "editor",
-        width = width,
-        height = height,
-        col = col,
-        row = row,
-        style = "minimal",
-        border = "rounded",
-        title = opts.title,
-        title_pos = "center",
-    }
+    local win_config = config.merge_win_config(config.user.win_config, opts)
 
     local win = vim.api.nvim_open_win(buf, true, win_config)
 
@@ -204,18 +191,27 @@ function M.toggle_notes(global)
             or string.format(" %s project notes ", cache.project_name),
     })
 
-    vim.keymap.set(
-        "n",
-        "q",
-        function() vim.cmd("wq") end,
-        { buffer = state.floating.buf, silent = true, noremap = true }
-    )
+    local keymaps = config.user.keymaps
+    if keymaps then
+        vim.keymap.set(
+            "n",
+            keymaps.quit_save,
+            function() vim.cmd("silent wq") end,
+            { buffer = state.floating.buf, silent = true, noremap = true }
+        )
+    end
 
     vim.cmd("edit " .. path)
 end
 
+---@param opts idknotes.Config
 function M.setup(opts)
-    opts = opts or {}
+    config.user = config.setup_config(opts)
+
+    -- set project path to cwd if not in git repo and fallback is enabled
+    if config.user.fallback_to_cwd and not cache.project_path then
+        cache.project_path = vim.fn.getcwd()
+    end
 
     -- setup directory and data json file if they don't exist yet
     if vim.fn.isdirectory(folder_path) == 0 then vim.fn.mkdir(folder_path) end
