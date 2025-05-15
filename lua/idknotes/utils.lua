@@ -33,4 +33,6 @@ function M.project_path_from_name(project_name, data)
     return project_path
 end
 
+function M.isinteger(x) return math.ceil(x) == x end
+
 return M

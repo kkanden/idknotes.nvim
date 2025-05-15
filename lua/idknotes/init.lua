@@ -33,7 +33,7 @@ local function open_floating_window(opts)
         buf = vim.api.nvim_create_buf(false, false)
     end
 
-    local win_config = config.merge_win_config(config.user.win_config, opts)
+    local win_config = config.setup_win_config(config.user.win_config, opts)
 
     local win = vim.api.nvim_open_win(buf, true, win_config)
 

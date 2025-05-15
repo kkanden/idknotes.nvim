@@ -1,10 +1,12 @@
 local M = {}
 
+local utils = require("idknotes.utils")
+
 M.default = {
     -- config of the note window
     win_config = {
-        width = math.ceil(vim.o.columns * 0.4),
-        height = math.ceil(vim.o.lines * 0.5),
+        width = 0.4,
+        height = 0.5,
         style = "minimal",
         border = "rounded",
         title_pos = "center",
@@ -18,7 +20,13 @@ M.default = {
 
 M.user = {}
 
-function M.merge_win_config(win_config, opts)
+function M.setup_win_config(win_config, opts)
+    if not utils.isinteger(win_config.width) then
+        win_config.width = math.ceil(vim.o.columns * win_config.width)
+    end
+    if not utils.isinteger(win_config.height) then
+        win_config.height = math.ceil(vim.o.lines * win_config.height)
+    end
     local missing_required_config = {
         relative = "editor",
         col = math.floor((vim.o.columns - win_config.width) / 2),
@@ -31,6 +39,16 @@ end
 ---@param opts idknotes.Config
 function M.validate(opts)
     vim.validate("win_config", opts.win_config, "table")
+    vim.validate(
+        "win_config.width",
+        opts.win_config.width,
+        function(x) return utils.isinteger(x) or (0 < x and x < 1) end
+    )
+    vim.validate(
+        "win_config.height",
+        opts.win_config.width,
+        function(x) return utils.isinteger(x) or (0 < x and x < 1) end
+    )
     vim.validate("fallback_to_cwd", opts.fallback_to_cwd, "boolean")
     vim.validate("save_on_close", opts.save_on_close, "boolean")
     vim.validate("keymaps", opts.keymaps, { "table", "boolean" })
