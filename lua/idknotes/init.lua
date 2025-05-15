@@ -2,6 +2,7 @@ local M = {}
 local cache = {}
 
 local config = require("idknotes.config")
+local usercmd = require("idknotes.usercmd")
 local utils = require("idknotes.utils")
 
 local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
@@ -204,9 +205,9 @@ function M.toggle_notes(global)
     vim.cmd("edit " .. path)
 end
 
----@param opts idknotes.Config
-function M.setup(opts)
-    config.user = config.setup_config(opts)
+---@param user_opts idknotes.Config
+function M.setup(user_opts)
+    config.user = config.setup_config(user_opts)
 
     -- set project path to cwd if not in git repo and fallback is enabled
     if config.user.fallback_to_cwd and not cache.project_path then
@@ -223,23 +224,24 @@ function M.setup(opts)
         cache.data = utils.read_data()
     end
 
-    vim.api.nvim_create_user_command("IDKnotes", function(args)
-        local global = true
-        if args.bang then global = false end
-        M.toggle_notes(global)
-    end, { bang = true })
+    ---@type table<string, SubCommand>
+    local subcommand_tbl = {
+        _DEFAULT_ = {
+            impl = function(_, opts)
+                local global = true
+                if opts.bang then global = false end
+                M.toggle_notes(global)
+            end,
+        },
+        rename = {
+            impl = function(_, opts) change_project_name(cache.project_path) end,
+        },
+        manage = {
+            impl = function(_, opts) manage_notes(cache.project_path) end,
+        },
+    }
 
-    vim.api.nvim_create_user_command(
-        "IDKnotesChange",
-        function() change_project_name(cache.project_path) end,
-        {}
-    )
-
-    vim.api.nvim_create_user_command(
-        "IDKnotesManage",
-        function() manage_notes(cache.project_path) end,
-        {}
-    )
+    usercmd.setup_usercmd(subcommand_tbl)
 end
 
 return M
