@@ -41,7 +41,7 @@ return {
     -- config of the note window
     win_config = {
         width = 0.4, -- if between 0 and 1 taken as fraction of the window, if integer taken as number or lines
-        height = 0.5, -- same as aboce
+        height = 0.5, -- same as above
         style = "minimal",
         border = "rounded",
         title_pos = "center",
