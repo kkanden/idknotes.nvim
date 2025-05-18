@@ -20,7 +20,6 @@ Example configuration using `lazy.nvim`:
 ```lua
 return {
     "kkanden/idknotes.nvim",
-    dev = true,
     ---@type idknotes.Config
     opts = {},
     config = function(_, opts)
