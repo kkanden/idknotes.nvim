@@ -48,15 +48,25 @@ local function create_note(global, name)
 end
 
 local function add_project_note(name, project_path)
-    create_note(false, name)
-
-    cache.data = vim.tbl_extend("keep", cache.data, { [project_path] = name })
+    if
+        vim.tbl_contains(vim.tbl_keys(cache.data), project_path)
+        or vim.tbl_contains(vim.tbl_values(cache.data), name)
+    then
+        cache.data[project_path] = name
+        cache.project_name = name -- update current project name
+        vim.notify(
+            ([[Associated note "%s" with the current project.]]):format(name)
+        )
+    else
+        create_note(false, name)
+        cache.data =
+            vim.tbl_extend("keep", cache.data, { [project_path] = name })
+        vim.notify(
+            ([[Successfully created a project note "%s".]]):format(name),
+            vim.log.levels.INFO
+        )
+    end
     utils.write_data(cache.data)
-
-    vim.notify(
-        ([[Successfully created a project note "%s".]]):format(name),
-        vim.log.levels.INFO
-    )
 end
 
 local function process_project_name(project_name)
@@ -113,8 +123,10 @@ local function change_project_name(project_path)
 end
 
 local function delete_note(project_name)
-    local project_path = utils.project_path_from_name(project_name, cache.data)
-    cache.data[project_path] = nil
+    local project_paths = utils.project_path_from_name(project_name, cache.data)
+    for _, path in pairs(project_paths) do
+        cache.data[path] = nil
+    end
     utils.write_data(cache.data)
 
     vim.notify(
@@ -123,10 +135,9 @@ local function delete_note(project_name)
 end
 
 local function manage_notes(project_path)
-    local choices = vim.tbl_filter(
-        function(value) return value ~= global_name end,
-        cache.data
-    )
+    local choices = vim.iter(vim.tbl_values(cache.data))
+        :filter(function(x) return x ~= global_name end)
+        :totable()
 
     if #choices == 0 then
         vim.notify("No project notes to manage.", vim.log.levels.WARN)
@@ -134,7 +145,7 @@ local function manage_notes(project_path)
     end
 
     vim.ui.select(
-        choices,
+        utils.unique(choices),
         { prompt = "Select project note to manage" },
         function(item)
             if not item then return end
@@ -234,10 +245,42 @@ function M.setup(user_opts)
             end,
         },
         rename = {
-            impl = function(_, opts) change_project_name(cache.project_path) end,
+            impl = function(_, _) change_project_name(cache.project_path) end,
         },
         manage = {
-            impl = function(_, opts) manage_notes(cache.project_path) end,
+            impl = function(_, _) manage_notes(cache.project_path) end,
+        },
+        share = {
+            impl = function(args, _)
+                if #args == 0 then
+                    error(
+                        "IDKnotes: `share` requires an argument.",
+                        vim.log.levels.ERROR
+                    )
+                    return
+                elseif #args > 1 then
+                    error(
+                        "IDKnotes: `share` accepts only one argument.",
+                        vim.log.levels.ERROR
+                    )
+                    return
+                end
+                local name = args[1]
+                if not vim.tbl_contains(vim.tbl_values(cache.data), name) then
+                    error(
+                        ([[IDKnotes: note "%s" does not exist.]]):format(name)
+                    )
+                end
+                add_project_note(name, cache.project_path)
+            end,
+            complete = function(subcmd_arg_lead)
+                local project_names = vim.tbl_values(cache.data)
+                return vim.iter(project_names)
+                    :filter(
+                        function(x) return x:find(subcmd_arg_lead) ~= nil end
+                    )
+                    :totable()
+            end,
         },
     }
 

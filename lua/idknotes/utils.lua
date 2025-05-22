@@ -25,14 +25,33 @@ function M.get_project_name(data, project_path)
     return data and data[project_path] or nil
 end
 
+---Returns all project paths associated with note `project_name`.
+---@param project_name string
+---@param data table
+---@return table
 function M.project_path_from_name(project_name, data)
-    local project_path
+    local project_paths = {}
     for k, v in pairs(data) do
-        if v == project_name then project_path = k end
+        if v == project_name then table.insert(project_paths, k) end
     end
-    return project_path
+    return project_paths
 end
 
 function M.isinteger(x) return math.ceil(x) == x end
+
+---Returns a list-like table containing unique values from table `t`.
+---@param t table
+---@return table
+function M.unique(t)
+    local found = {}
+    local ret = {}
+    for _, v in pairs(t) do
+        if not vim.tbl_contains(found, v) then
+            table.insert(found, v)
+            table.insert(ret, v)
+        end
+    end
+    return ret
+end
 
 return M

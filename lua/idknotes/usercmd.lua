@@ -3,7 +3,7 @@ local M = {}
 
 ---@class SubCommand
 ---@field impl fun(args:string[], opts: table) The command implementation
----@field completion? fun(subcmd_arg_lead: string): string[] (optional) Command completions callback, taking the lead of the subcommand's arguments
+---@field complete? fun(subcmd_arg_lead: string): string[] (optional) Command completions callback, taking the lead of the subcommand's arguments
 
 ---@param subcommands_tbl table<string, SubCommand>
 ---@param opts table :h lua-guide-commands-create
@@ -52,8 +52,10 @@ function M.setup_usercmd(subcommands_tbl)
                 -- Check if cmdline is a subcommand
                 if cmdline:match("^['<,'>]*IDKnotes[!]*%s+%w*$") then
                     -- Filter subcommands that match
-                    local subcommand_keys = vim.tbl_keys(subcommands_tbl)
-                    table.remove(subcommand_keys, 1) -- remove _DEFAULT_
+                    local subcommand_keys = vim
+                        .iter(vim.tbl_keys(subcommands_tbl))
+                        :filter(function(x) return x ~= "_DEFAULT_" end) -- remove _DEFAULT_
+                        :totable()
                     return vim.iter(subcommand_keys)
                         :filter(
                             function(key) return key:find(arg_lead) ~= nil end
