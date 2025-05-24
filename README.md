@@ -18,7 +18,7 @@ or <nobr>`:IDKnotes manage`</nobr> (from where you can also delete the note).
 Example configuration using `lazy.nvim`:
 
 ```lua
-return {
+{
     "kkanden/idknotes.nvim",
     ---@type idknotes.Config
     opts = {},
@@ -46,7 +46,7 @@ return {
         title_pos = "center",
     },
     fallback_to_cwd = false, -- if not in a git repo, fall back to current directory
-    save_on_close = true, -- unimplemented
+    save_on_close = true,
     -- set `keymaps` to false to disable automatic keymap setup
     keymaps = {
         quit_save = "q", -- `q` in normal mode will save and close the buffer

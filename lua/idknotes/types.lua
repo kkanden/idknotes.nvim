@@ -5,6 +5,4 @@
 ---@field keymaps? table<string, string> | boolean addtional buffer keymaps, set to false to disable
 
 ---@class idknotes.OpenWinOpts
----@field buf integer
----@field win? integer
 ---@field title string
