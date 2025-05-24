@@ -10,8 +10,17 @@ arguments. If no argument is provided, the global notes are opened; with a bang
 
 Upon trying to open a project note in a project for which a project note has not
 yet been created, you will be prompted to provide a name associated with the
-project. You can change the name afterward using <nobr>`:IDKnotes rename`</nobr>
-or <nobr>`:IDKnotes manage`</nobr> (from where you can also delete the note).
+project.
+
+### Available commands
+
+The `:IDKnotes` command accepts the following subcommands:
+
+- `rename` - opens prompt to enter new of the current project's note;
+- `delete` - deletes the current project note;
+- `manage` - opens picker to do the above actions on a chosen project note;
+- `share [project_name]` - applies `project_name`'s note in the current project,
+  will override an existing project note.
 
 ## Configuration
 
@@ -22,13 +31,16 @@ Example configuration using `lazy.nvim`:
     "kkanden/idknotes.nvim",
     ---@type idknotes.Config
     opts = {},
-    config = function(_, opts)
-        require("idknotes").setup(opts) -- setup is required for the plugin to work
-
-        vim.keymap.set("n", "<leader>n", "<Cmd>IDKnotes<CR>") -- global notes
-
-        vim.keymap.set("n", "<leader>m", "<Cmd>IDKnotes!<CR>") -- project notes
-    end,
+    keys = { -- suggested keymaps
+        {
+            "<leader>n",
+            "<Cmd>IDKnotes<CR>",
+        },
+        {
+            "<leader>m",
+            "<Cmd>IDKnotes!<CR>",
+        },
+    },
 }
 ```
 
