@@ -5,22 +5,26 @@ local data_path = vim.fs.joinpath(folder_path, "idknotes.json")
 
 function M.readable(file) return vim.fn.filereadable(file) == 1 end
 
+---Read in idknotes json
 function M.read_data()
     local lines = vim.fn.readfile(data_path)
     lines = table.concat(lines) -- vim.json.decode needs a pure string
     return vim.json.decode(lines)
 end
 
+---Write idknotes json
 function M.write_data(data)
     local json = vim.json.encode(data)
     vim.fn.writefile({ json }, data_path)
 end
 
+---Get project root file based on .git, returns `nil` if not in a git repo
 function M.resolve_project_path()
     local working_dir = vim.fn.getcwd()
     return vim.fs.root(working_dir, ".git") -- per-project notes will work on git repositories
 end
 
+---Returns the project name for `project_path`
 function M.get_project_name(data, project_path)
     return data and data[project_path] or nil
 end

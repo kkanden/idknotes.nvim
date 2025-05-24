@@ -45,6 +45,10 @@ local function create_open_window(buf_var, opts)
     local win = vim.api.nvim_open_win(buf, true, win_config)
     return { buf = buf, win = win }
 end
+
+---Creates an empty markdown file
+---@param global boolean
+---@param name string
 local function create_note(global, name)
     local path = global and global_note_path
         or vim.fs.joinpath(folder_path, name .. ".md")
@@ -52,6 +56,9 @@ local function create_note(global, name)
     vim.fn.writefile({ "" }, path)
 end
 
+---Associate note `name` with project in `project_path`, overwrites the json info file
+---@param name string
+---@param project_path string
 local function add_project_note(name, project_path)
     if
         vim.tbl_contains(vim.tbl_keys(cache.data), project_path)
