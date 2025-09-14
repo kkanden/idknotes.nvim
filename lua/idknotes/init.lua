@@ -26,22 +26,20 @@ local state = {
     },
 }
 
----@param buf_var integer
----@param opts idknotes.OpenWinOpts
+---@param path string
+---@param extra_win_opts idknotes.OpenWinOpts
 ---@return table
-local function create_open_window(buf_var, opts)
-    opts = opts or {}
+local function create_open_window(path, extra_win_opts)
+    extra_win_opts = extra_win_opts or {}
 
-    local buf
-    if vim.api.nvim_buf_is_valid(buf_var) then
-        buf = buf_var
-    else
-        buf = vim.api.nvim_create_buf(false, false)
-    end
+    local buf = vim.fn.bufnr(path)
+    if not vim.api.nvim_buf_is_valid(buf) then buf = vim.fn.bufadd(path) end
+    if not vim.api.nvim_buf_is_loaded(buf) then vim.fn.bufload(buf) end
 
     vim.bo[buf].swapfile = false
     vim.bo[buf].buflisted = false
-    local win_config = config.setup_win_config(config.user.win_config, opts)
+    local win_config =
+        config.setup_win_config(config.user.win_config, extra_win_opts)
     local win = vim.api.nvim_open_win(buf, true, win_config)
     return { buf = buf, win = win }
 end
@@ -180,7 +178,6 @@ end
 function M.toggle_notes(global)
     local scope = global and "global" or "project"
     local state_note = state[scope]
-    local buf = state_note.buf
     local win = state_note.win
     -- close window
     if vim.api.nvim_win_is_valid(win) then
@@ -213,41 +210,28 @@ function M.toggle_notes(global)
         or vim.fs.joinpath(folder_path, cache.project_name .. ".md")
 
     -- open window
-    state[scope] = create_open_window(buf, {
+    state[scope] = create_open_window(path, {
         title = global and " global notes "
             or string.format(" %s project notes ", cache.project_name),
     })
-    buf = state[scope].buf
-    win = state[scope].win
 
     local keymaps = config.user.keymaps
+
     if keymaps then
-        vim.api.nvim_create_autocmd("FileType", {
-            pattern = "markdown.idknotes",
-            callback = function()
-                vim.keymap.set("n", keymaps.quit_save, function()
-                    vim.cmd("silent w")
-                    vim.api.nvim_win_hide(state[scope].win)
-                end, {
-                    buffer = 0,
-                    silent = true,
-                    nowait = true,
-                    noremap = true,
-                })
-            end,
+        vim.keymap.set("n", keymaps.quit_save, function()
+            vim.cmd("silent update")
+            vim.api.nvim_win_hide(state[scope].win)
+        end, {
+            buffer = state[scope].buf,
         })
     end
 
     if config.user.save_on_close then
-        vim.api.nvim_create_autocmd({ "WinClosed" }, {
-            group = vim.api.nvim_create_augroup("idknotes_bufclose", {}),
-            pattern = tostring(win), -- buffer-local autocmd doesn't work
-            callback = function() vim.cmd("silent w") end,
+        vim.api.nvim_create_autocmd("BufLeave", {
+            buffer = state[scope].buf,
+            callback = function() vim.cmd("silent update") end,
         })
     end
-
-    vim.cmd("edit " .. path)
-    vim.bo[buf].filetype = "markdown.idknotes" -- set filetype *after* edit
 end
 
 ---@param user_opts idknotes.Config
