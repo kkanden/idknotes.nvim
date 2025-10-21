@@ -292,7 +292,7 @@ function M.setup(user_opts)
                 add_project_note(name, cache.project_path)
             end,
             complete = function(subcmd_arg_lead)
-                local project_names = vim.tbl_values(cache.data)
+                local project_names = utils.unique(vim.tbl_values(cache.data))
                 return vim.iter(project_names)
                     :filter(
                         function(x) return x:find(subcmd_arg_lead) ~= nil end
