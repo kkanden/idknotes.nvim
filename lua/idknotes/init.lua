@@ -5,7 +5,7 @@ local config = require("idknotes.config")
 local usercmd = require("idknotes.usercmd")
 local utils = require("idknotes.utils")
 
-local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
+local folder_path = vim.fs.joinpath(vim.fn.stdpath("state"), "idknotes")
 local global_note_path = vim.fs.joinpath(folder_path, "global.md")
 local data_path = vim.fs.joinpath(folder_path, "idknotes.json")
 local global_name = "_GLOBAL_"

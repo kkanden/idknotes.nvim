@@ -1,6 +1,6 @@
 local M = {}
 
-local folder_path = vim.fs.joinpath(vim.fn.stdpath("data"), "idknotes")
+local folder_path = vim.fs.joinpath(vim.fn.stdpath("state"), "idknotes")
 local data_path = vim.fs.joinpath(folder_path, "idknotes.json")
 
 function M.readable(file) return vim.fn.filereadable(file) == 1 end
